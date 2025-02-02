@@ -1,22 +1,25 @@
 
-juce_add_plugin (MultiEncoder
+juce_add_plugin (GranularEncoder
     PLUGIN_MANUFACTURER_CODE IEMA
-    PLUGIN_CODE MuEn
+    PLUGIN_CODE GrEn
     ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
     ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
     COMPANY_NAME "IEM"
-    PRODUCT_NAME "MultiEncoder"
+    PRODUCT_NAME "GranularEncoder"
     FORMATS ${IEM_FORMATS}
-    VERSION "1.0.3"
-    LV2URI "http://plugins.iem.at/MultiEncoder")
+    VERSION "1.0.1"
+    LV2URI "http://plugins.iem.at/GranularEncoder")
 
-juce_generate_juce_header(MultiEncoder)
 
-target_sources(MultiEncoder PRIVATE
+juce_generate_juce_header (GranularEncoder)
+
+target_sources (GranularEncoder PRIVATE
     Source/PluginEditor.cpp
     Source/PluginEditor.h
     Source/PluginProcessor.cpp
     Source/PluginProcessor.h
+    Source/Grain.cpp
+    Source/Grain.h
 
     ../resources/OSC/OSCInputStream.h
     ../resources/OSC/OSCParameterInterface.cpp
@@ -28,7 +31,7 @@ target_sources(MultiEncoder PRIVATE
     ../resources/efficientSHvanilla.cpp
     )
 
-target_compile_definitions(MultiEncoder PRIVATE
+target_compile_definitions (GranularEncoder PRIVATE
     JUCE_USE_CURL=0
     JUCE_WEB_BROWSER=0
     JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
@@ -40,15 +43,14 @@ target_compile_definitions(MultiEncoder PRIVATE
     JUCE_DISPLAY_SPLASH_SCREEN=0
     JUCE_VST3_CAN_REPLACE_VST2=0)
 
-target_include_directories(MultiEncoder PRIVATE Source)
+target_include_directories (GranularEncoder PRIVATE Source)
 
-target_link_libraries(MultiEncoder PRIVATE
+target_link_libraries (GranularEncoder PRIVATE
     LAF_fonts
     IEM_logo
     juce::juce_audio_utils
     juce::juce_audio_plugin_client
     juce::juce_osc
-    juce::juce_dsp
     juce::juce_opengl
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags)
