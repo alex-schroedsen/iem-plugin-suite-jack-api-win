@@ -63,14 +63,20 @@ static void* juce_loadJackFunction (const char* const name)
 {
     if (juce_libjackHandle == nullptr)
         return nullptr;
+	#if JUCE_WINDOWS
+     return GetProcAddress ((HMODULE) juce_libjackHandle, name);
+	#else
 
-    return dlsym (juce_libjackHandle, name);
+     return dlsym (juce_libjackHandle, name);
+	#endif
 }
 
 #if JUCE_MAC
     #define JACK_LIB_NAMES "libjack.0.dylib", "libjack.dylib"
 #elif JUCE_LINUX
     #define JACK_LIB_NAMES "libjack.so.0", "libjack.so"
+#elif JUCE_WINDOWS
+    #define JACK_LIB_NAMES "libjack64.dll", "libjack.dll"
 #endif
 
 #define JUCE_DECL_JACK_FUNCTION(return_type, fn_name, argument_types, arguments) \
@@ -651,45 +657,50 @@ class JackAudioIODeviceType;
     #define JACK_LIB_NAMES
 #endif
 
-class JackAudioIODeviceType : public juce::AudioIODeviceType
+class JackAudioIODeviceType final : public AudioIODeviceType
 {
 public:
-    JackAudioIODeviceType() : AudioIODeviceType (IEM_JACK_DEVICENAME) {}
+    JackAudioIODeviceType()
+        : AudioIODeviceType ("JACK")
+    {}
 
     void scanForDevices()
     {
-        const char* libnames[] = { JACK_LIB_NAMES };
         hasScanned = true;
         inputNames.clear();
         outputNames.clear();
 
-        for (unsigned int i = 0; ! juce_libjackHandle && i < sizeof (libnames) / sizeof (*libnames);
-             i++)
-        {
-            juce_libjackHandle = dlopen (libnames[i], RTLD_LAZY);
-        }
-        if (juce_libjackHandle == nullptr)
-            return;
+       #if (JUCE_LINUX || JUCE_BSD)
+        if (juce_libjackHandle == nullptr)  juce_libjackHandle = dlopen ("libjack.so.0", RTLD_LAZY);
+        if (juce_libjackHandle == nullptr)  juce_libjackHandle = dlopen ("libjack.so",   RTLD_LAZY);
+       #elif JUCE_MAC
+        if (juce_libjackHandle == nullptr)  juce_libjackHandle = dlopen ("libjack.dylib", RTLD_LAZY);
+       #elif JUCE_WINDOWS
+        #if JUCE_64BIT
+         if (juce_libjackHandle == nullptr)  juce_libjackHandle = LoadLibraryA ("libjack64.dll");
+        #else
+         if (juce_libjackHandle == nullptr)  juce_libjackHandle = LoadLibraryA ("libjack.dll");
+        #endif
+       #endif
+
+        if (juce_libjackHandle == nullptr)  return;
 
         jack_status_t status = {};
 
         // open a dummy client
-        if (auto* const client =
-                iem::jack_client_open ("JuceJackDummy", JackNoStartServer, &status))
+        if (auto* const client = juce::jack_client_open ("JuceJackDummy", JackNoStartServer, &status))
         {
             // scan for output devices
             for (JackPortIterator i (client, false); i.next();)
-                if (i.getClientName() != (currentDeviceName)
-                    && ! inputNames.contains (i.getClientName()))
+                if (i.getClientName() != (JUCE_JACK_CLIENT_NAME) && ! inputNames.contains (i.getClientName()))
                     inputNames.add (i.getClientName());
 
             // scan for input devices
             for (JackPortIterator i (client, true); i.next();)
-                if (i.getClientName() != (currentDeviceName)
-                    && ! outputNames.contains (i.getClientName()))
+                if (i.getClientName() != (JUCE_JACK_CLIENT_NAME) && ! outputNames.contains (i.getClientName()))
                     outputNames.add (i.getClientName());
 
-            iem::jack_client_close (client);
+            juce::jack_client_close (client);
         }
         else
         {
@@ -697,7 +708,7 @@ public:
         }
     }
 
-    juce::StringArray getDeviceNames (bool wantInputNames) const
+    StringArray getDeviceNames (bool wantInputNames) const
     {
         jassert (hasScanned); // need to call scanForDevices() before doing this
         return wantInputNames ? inputNames : outputNames;
@@ -709,9 +720,9 @@ public:
         return 0;
     }
 
-    bool hasSeparateInputsAndOutputs() const { return true; }
+    bool hasSeparateInputsAndOutputs() const    { return true; }
 
-    int getIndexOfDevice (juce::AudioIODevice* device, bool asInput) const
+    int getIndexOfDevice (AudioIODevice* device, bool asInput) const
     {
         jassert (hasScanned); // need to call scanForDevices() before doing this
 
@@ -722,8 +733,8 @@ public:
         return -1;
     }
 
-    juce::AudioIODevice* createDevice (const juce::String& outputDeviceName,
-                                       const juce::String& inputDeviceName)
+    AudioIODevice* createDevice (const String& outputDeviceName,
+                                 const String& inputDeviceName)
     {
         jassert (hasScanned); // need to call scanForDevices() before doing this
 
@@ -731,20 +742,15 @@ public:
         const int outputIndex = outputNames.indexOf (outputDeviceName);
 
         if (inputIndex >= 0 || outputIndex >= 0)
-        {
-            auto device = new JackAudioIODevice (inputDeviceName,
-                                                 outputDeviceName,
-                                                 [this] { callDeviceChangeListeners(); });
-            currentDeviceName = device->getName();
-            return device;
-        }
+            return new JackAudioIODevice (inputDeviceName, outputDeviceName,
+                                          [this] { callDeviceChangeListeners(); });
+
         return nullptr;
     }
 
 private:
-    juce::StringArray inputNames, outputNames, inputIds, outoutIds;
+    StringArray inputNames, outputNames;
     bool hasScanned = false;
-    juce::String currentDeviceName = "";
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JackAudioIODeviceType)
 };
