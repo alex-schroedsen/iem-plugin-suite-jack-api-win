@@ -4,7 +4,33 @@ The IEM Plug-in Suite is a free and Open-Source audio plug-in suite including Am
 
 The suite provides plug-ins for a full Ambisonic production: encoders, reverbs, dynamics including limiter and multi-band compression, rotators, and decoders for both headphones and arbitrary loudspeaker layouts, and many more. The plug-ins are created with the [JUCE framework](https://juce.com) and can be compiled to any major plug-in format (VST, VST3, LV2, AU, AAX).
 
-All the plug-ins can be built as standalones, e.g. for use with JACK or virtual soundcards.
+All the plug-ins can be built as standalones, e.g. for use with JACK or virtual soundcards. JACK was previously only supported on Mac and Linux, but this version adds JACK support for Windows! Thank you to the IEM team for their work on these massively useful plugins. The modifications I have made and dependencies used are listed below:
+
+Dependencies Used Below:
+
+1. Put source for dlfcn-win32-1.4.1 https://github.com/dlfcn-win32/dlfcn-win32/releases into the microsoft visual C directory Example C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.40.33807\include.
+2. Put source for fftw 3.3.9 https://fftw.org/pub/fftw/ in the fftw directory in IEM source dir.
+3. Put JUCE 7.0.5 https://github.com/juce-framework/JUCE/releases/tag/7.0.5  in the JUCE directory 
+
+
+Changes Listed Below:
+
+1. Changes documented here: https://github.com/juce-framework/JUCE/commit/f608e7cce2be13382b4abf14b3e6778a339c054d#diff-de3ecdf20c69739cfc2da0842440f899cd9e776480e9c8bda934a689aca6fe93 
+2. Set ```sh#define JUCE_JACK 1``` on line 116 of juce_audio_devices.h 
+3. Replaced the ```sh class JackAudioIODeviceType final : public AudioIODeviceType``` in IEM_JackAudio.h with the one updated in juce_JackAudio.cpp
+4. Replaced the ```sh juce_loadJackFunction``` in IEM_JackAudio.h with the one updated in juce_JackAudio.cpp
+5. Added
+```sh
+#elif JUCE_WINDOWS
+    #define JACK_LIB_NAMES "libjack64.dll", "libjack.dll"
+```
+To line 78 in IEM_JackAudio.h
+6. Commented ```sh //#include "midi_io/juce_MidiDeviceListConnectionBroadcaster.cpp"``` on line 61 of juce_audio_devices.cpp
+7. Renamed juce_win32_WASAPI.cpp to juce_WASAPI_windows.cpp
+8. Renamed juce_win32_DirectSound.cpp to juce_DirectSound_windows.cpp
+9. Renamed juce_win32_Midi.cpp to juce_Midi_windows.cpp
+
+Compiled  using MSVC 17 2022.
 
 For more information, installation guides and plug-in descriptions see:
 - Website: https://plugins.iem.at
@@ -20,7 +46,7 @@ Before compiling on Linux, some dependencies must be met. For Ubuntu (and most l
 apt-get build-dep iem-plugin-suite
 ```
 
- On RMP-based systems (e.g. Fedora), dependencies are installed with 
+ On RPM-based systems (e.g. Fedora), dependencies are installed with 
 ```sh
 dnf install alsa-lib-devel fftw-devel findutils freetype-devel gcc-c++  \
              libX11-devel libXcursor-devel curl-devel libXinerama-devel \
@@ -59,7 +85,7 @@ cmake .. -DIEM_BUILD_VST2=ON -DVST2SDKPATH="pathtothesdk"
 #### Standalone versions
 If you want to use the plug-ins outside a plug-in host, standalone versions can become quite handy! With them enabled, executables will be built which can be used with virtual soundcards of even JACK.
 
-In case you don't want the pliug-ins with JACK support, simply deactivate it: `-DIEM_STANDALONE_JACK_SUPPORT=OFF`. JACK is only supported on macOS and Linux.
+In case you don't want the plug-ins with JACK support, simply deactivate it: `-DIEM_STANDALONE_JACK_SUPPORT=OFF`. JACK is now supported on Windows as well as Mac and Linux.
 
 #### Build them!
 Okay, okay, enough with all those options, you came here to built, right?
