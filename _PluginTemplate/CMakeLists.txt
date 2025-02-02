@@ -1,19 +1,18 @@
-
-juce_add_plugin (DirectionalCompressor
+juce_add_plugin (PluginTemplate
     PLUGIN_MANUFACTURER_CODE IEMA
-    PLUGIN_CODE DiCo
+    PLUGIN_CODE PlTe
     ICON_BIG "../resources/Standalone/IEMPluginSuiteSmall.png"
     ICON_SMALL "../resources/Standalone/IEMPluginSuiteSmall.png"
     COMPANY_NAME "IEM"
-    PRODUCT_NAME "DirectionalCompressor"
+    PRODUCT_NAME "PluginTemplate"
     FORMATS ${IEM_FORMATS}
-    VERSION "1.3.5"
-    LV2URI "http://plugins.iem.at/DirectionalCompressor")
+    VERSION "0.0.1"
+    LV2URI "http://plugins.iem.at/_PluginTemplate")
 
 
-juce_generate_juce_header (DirectionalCompressor)
+juce_generate_juce_header(PluginTemplate)
 
-target_sources (DirectionalCompressor PRIVATE
+target_sources(PluginTemplate PRIVATE
     Source/PluginEditor.cpp
     Source/PluginEditor.h
     Source/PluginProcessor.cpp
@@ -27,9 +26,10 @@ target_sources (DirectionalCompressor PRIVATE
     ../resources/OSC/OSCUtilities.h
 
     ../resources/efficientSHvanilla.cpp
+
     )
 
-target_compile_definitions (DirectionalCompressor PRIVATE
+target_compile_definitions(PluginTemplate PRIVATE
     JUCE_USE_CURL=0
     JUCE_WEB_BROWSER=0
     JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
@@ -41,9 +41,9 @@ target_compile_definitions (DirectionalCompressor PRIVATE
     JUCE_DISPLAY_SPLASH_SCREEN=0
     JUCE_VST3_CAN_REPLACE_VST2=0)
 
-target_include_directories (DirectionalCompressor PRIVATE Source)
+target_include_directories(PluginTemplate PRIVATE Source)
 
-target_link_libraries (DirectionalCompressor PRIVATE
+target_link_libraries(PluginTemplate PRIVATE
     LAF_fonts
     IEM_logo
     juce::juce_audio_utils
