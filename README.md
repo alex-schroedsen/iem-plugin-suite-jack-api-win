@@ -16,16 +16,16 @@ Dependencies Used Below:
 Changes Listed Below:
 
 1. Changes documented here: https://github.com/juce-framework/JUCE/commit/f608e7cce2be13382b4abf14b3e6778a339c054d#diff-de3ecdf20c69739cfc2da0842440f899cd9e776480e9c8bda934a689aca6fe93 
-2. Set ```sh#define JUCE_JACK 1``` on line 116 of juce_audio_devices.h 
-3. Replaced the ```sh class JackAudioIODeviceType final : public AudioIODeviceType``` in IEM_JackAudio.h with the one updated in juce_JackAudio.cpp
-4. Replaced the ```sh juce_loadJackFunction``` in IEM_JackAudio.h with the one updated in juce_JackAudio.cpp
+2. Set ```#define JUCE_JACK 1``` on line 116 of juce_audio_devices.h 
+3. Replaced the ``` class JackAudioIODeviceType final : public AudioIODeviceType``` in IEM_JackAudio.h with the one updated in juce_JackAudio.cpp
+4. Replaced the ``` juce_loadJackFunction``` in IEM_JackAudio.h with the one updated in juce_JackAudio.cpp
 5. Added
 ```sh
 #elif JUCE_WINDOWS
     #define JACK_LIB_NAMES "libjack64.dll", "libjack.dll"
 ```
 To line 78 in IEM_JackAudio.h
-6. Commented ```sh //#include "midi_io/juce_MidiDeviceListConnectionBroadcaster.cpp"``` on line 61 of juce_audio_devices.cpp
+6. Commented ``` //#include "midi_io/juce_MidiDeviceListConnectionBroadcaster.cpp"``` on line 61 of juce_audio_devices.cpp
 7. Renamed juce_win32_WASAPI.cpp to juce_WASAPI_windows.cpp
 8. Renamed juce_win32_DirectSound.cpp to juce_DirectSound_windows.cpp
 9. Renamed juce_win32_Midi.cpp to juce_Midi_windows.cpp
